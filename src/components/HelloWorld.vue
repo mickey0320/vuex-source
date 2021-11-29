@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    {{ $store.state.age }}
+    {{ $store.state.a.age }}
   </div>
 </template>
 
@@ -12,7 +12,8 @@ export default {
   },
   created() {
     setTimeout(() => {
-      this.$store.dispatch("setAge", 15);
+      // this.$store.dispatch("setAge", 15);
+      this.$store.commit("a/setAge", 20);
     }, 1000);
   },
 };

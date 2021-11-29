@@ -20,6 +20,13 @@ class ModuleCollection {
       this.register([...path, moduleName], childModule);
     });
   }
+  getNamespace(path) {
+    let module = this.root;
+    return path.reduce((namespace, key) => {
+      module = module.getChild(key);
+      return namespace + (module.namespaced ? key + "/" : "");
+    }, "");
+  }
 }
 
 export default ModuleCollection;

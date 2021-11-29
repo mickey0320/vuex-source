@@ -4,6 +4,7 @@ import { forEach } from "./util";
 export let Vue;
 
 function installModule(store, rootState, path, module) {
+  const namespace = store._modules.getNamespace(path);
   if (path.length > 0) {
     const parent = path.slice(0, -1).reduce((memo, moduleName) => {
       return memo[moduleName];
@@ -11,19 +12,19 @@ function installModule(store, rootState, path, module) {
     Vue.set(parent, path[path.length - 1], module.state);
   }
   module.forEachMutations((mutation, key) => {
-    store._mutations[key] = store._mutations[key] || [];
-    store._mutations[key].push((payload) => {
+    store._mutations[namespace + key] = store._mutations[namespace + key] || [];
+    store._mutations[namespace + key].push((payload) => {
       mutation.call(store, module.state, payload);
     });
   });
   module.forEachActions((action, key) => {
-    store._actions[key] = store._actions[key] || [];
-    store._actions[key].push((payload) => {
+    store._actions[namespace + key] = store._actions[namespace + key] || [];
+    store._actions[namespace + key].push((payload) => {
       action.call(store, store, payload);
     });
   });
   module.forEachGetters((getter, key) => {
-    store._wrappedGetters[key] = function () {
+    store._wrappedGetters[namespace + key] = function () {
       return getter(module.state);
     };
   });

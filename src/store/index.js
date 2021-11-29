@@ -24,7 +24,13 @@ export default new Vuex.Store({
   },
   modules: {
     a: {
+      namespaced: true,
       state: { age: 1 },
+      mutations: {
+        setAge(state, payload) {
+          state.age = payload;
+        },
+      },
     },
     b: {
       state: { age: 2 },
