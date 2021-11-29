@@ -79,6 +79,14 @@ export class Store {
   get state() {
     return this._vm._data.$$state;
   }
+  resiterModule(path, rawModule) {
+    if (typeof path === 'string') {
+      path = [path]
+    }
+    this._modules.register(path, rawModule)
+    installModule(this, this._modules.root.state, path, rawModule.newModule)
+    resetStoreVm(this, this._modules.root.state)
+  }
 }
 
 export function install(_Vue) {

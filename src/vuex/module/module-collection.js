@@ -8,6 +8,7 @@ class ModuleCollection {
   }
   register(path, currentModule) {
     const newModule = new Module(currentModule);
+    currentModule.newModule = newModule
     if (!this.root) {
       this.root = newModule;
     } else {
