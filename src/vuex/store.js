@@ -8,17 +8,16 @@ function installModule(store, rootState, path, module) {
     const parent = path.slice(0, -1).reduce((memo, moduleName) => {
       return memo[moduleName];
     }, rootState);
-    // parent[path[path.length - 1]] = module.state
     Vue.set(parent, path[path.length - 1], module.state);
   }
   module.forEachMutations((mutation, key) => {
-    store._mutations[key] = store._mutations || [];
+    store._mutations[key] = store._mutations[key] || [];
     store._mutations[key].push((payload) => {
       mutation.call(store, module.state, payload);
     });
   });
   module.forEachActions((action, key) => {
-    store._actions[key] = store._actions || [];
+    store._actions[key] = store._actions[key] || [];
     store._actions[key].push((payload) => {
       action.call(store, store, payload);
     });
@@ -61,8 +60,9 @@ export class Store {
     this._mutations = {};
     this._actions = {};
     this._wrappedGetters = {};
+    this.commit = this.commit.bind(this);
+    this.dispatch = this.dispatch.bind(this);
     installModule(this, state, [], this._modules.root);
-
     resetStoreVm(this, state);
   }
   commit(type, payload) {
@@ -72,7 +72,7 @@ export class Store {
   }
   dispatch(type, payload) {
     this._actions[type].forEach((action) => {
-      action.call(this, store, payload);
+      action.call(this, payload);
     });
   }
   get state() {

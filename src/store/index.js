@@ -18,15 +18,26 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    setAge({ commit }) {},
+    setAge({ commit }, payload) {
+      commit("setAge", payload);
+    },
   },
   modules: {
-    a: {},
-    b: {},
+    a: {
+      state: { age: 1 },
+    },
+    b: {
+      state: { age: 2 },
+    },
     c: {
+      state: { a: 5 },
       modules: {
-        c1: {},
-        c2: {},
+        c1: {
+          state: { age: 3 },
+        },
+        c2: {
+          state: { age: 4 },
+        },
       },
     },
   },

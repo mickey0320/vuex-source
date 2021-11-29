@@ -10,6 +10,11 @@ export default {
   props: {
     msg: String,
   },
+  created() {
+    setTimeout(() => {
+      this.$store.dispatch("setAge", 15);
+    }, 1000);
+  },
 };
 </script>
 
