@@ -15,12 +15,16 @@ function installModule(store, rootState, path, module) {
     const parent = path.slice(0, -1).reduce((memo, moduleName) => {
       return memo[moduleName];
     }, rootState);
+    // store._withCommitting(() => {
     Vue.set(parent, path[path.length - 1], module.state);
+    // });
   }
   module.forEachMutations((mutation, key) => {
     store._mutations[namespace + key] = store._mutations[namespace + key] || [];
     store._mutations[namespace + key].push((payload) => {
-      mutation.call(store, getState(store.state, path), payload);
+      store._withCommitting(() => {
+        mutation.call(store, getState(store.state, path), payload);
+      });
       store._subscribs.forEach((subscribe) =>
         subscribe({ mutation, type: key }, store.state)
       );
@@ -46,6 +50,7 @@ function resetStoreVm(store, state) {
   const _wrappedGetters = store._wrappedGetters;
   const computed = {};
   store.getters = {};
+  const oldVm = store._vm;
   forEach(_wrappedGetters, (getter, key) => {
     computed[key] = () => {
       return getter();
@@ -62,6 +67,21 @@ function resetStoreVm(store, state) {
     },
     computed,
   });
+  if (store.strict) {
+    store._vm.$watch(
+      () => store._vm._data.$$state,
+      () => {
+        console.assert(store._committing, "在mutations外更改了状态");
+      },
+      {
+        deep: true,
+        sync: true,
+      }
+    );
+  }
+  if (oldVm) {
+    vm.$nextTick(() => oldVm.$destroy());
+  }
 }
 export class Store {
   constructor(options) {
@@ -71,11 +91,19 @@ export class Store {
     this._actions = {};
     this._wrappedGetters = {};
     this._subscribs = [];
+    this._committing = false;
+    this.strict = options.strict || true;
     this.commit = this.commit.bind(this);
     this.dispatch = this.dispatch.bind(this);
     installModule(this, state, [], this._modules.root);
     resetStoreVm(this, state);
     (options.plugins || []).forEach((plugin) => plugin(this));
+  }
+  _withCommitting(fn) {
+    const committing = this._committing;
+    this._committing = true;
+    fn();
+    this._committing = committing;
   }
   commit(type, payload) {
     this._mutations[type].forEach((mutation) => {
@@ -102,7 +130,9 @@ export class Store {
     this._subscribs.push(fn);
   }
   replaceState(newState) {
-    this._vm._data.$$state = newState;
+    this._withCommitting(() => {
+      this._vm._data.$$state = newState;
+    });
   }
 }
 

@@ -1,7 +1,9 @@
 <template>
   <div class="hello">
-    {{ $store.state.age }}
-    <button @click="$store.commit('setAge', $store.state.age + 1)">+</button>
+    {{ $store.state.a.age }}
+    <button @click="$store.commit('a/setAge', $store.state.a.age + 1)">
+      +
+    </button>
   </div>
 </template>
 

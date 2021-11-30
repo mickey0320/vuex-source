@@ -6,7 +6,7 @@ Vue.use(Vuex);
 function persist(store) {
   const local = localStorage.getItem("VUEX:STATE");
   if (local) {
-    store.replaceState(JSON.parse(local));
+    // store.replaceState(JSON.parse(local));
   }
   store.subscribe(({ mutation, type }, state) => {
     localStorage.setItem("VUEX:STATE", JSON.stringify(state));
