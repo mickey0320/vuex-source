@@ -3,9 +3,20 @@ import Vuex from "../vuex/index";
 
 Vue.use(Vuex);
 
+function persist(store) {
+  const local = localStorage.getItem("VUEX:STATE");
+  if (local) {
+    store.replaceState(JSON.parse(local));
+  }
+  store.subscribe(({ mutation, type }, state) => {
+    localStorage.setItem("VUEX:STATE", JSON.stringify(state));
+  });
+}
+
 export default new Vuex.Store({
+  plugins: [persist],
   state: {
-    age: 100,
+    age: 1,
   },
   getters: {
     getAge(state) {

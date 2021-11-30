@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
-    {{ $store.state.a.age }}
+    {{ $store.state.age }}
+    <button @click="$store.commit('setAge', $store.state.age + 1)">+</button>
   </div>
 </template>
 
@@ -10,12 +11,7 @@ export default {
   props: {
     msg: String,
   },
-  created() {
-    setTimeout(() => {
-      // this.$store.dispatch("setAge", 15);
-      this.$store.commit("a/setAge", 20);
-    }, 1000);
-  },
+  created() {},
 };
 </script>
 

@@ -3,6 +3,12 @@ import applyMixin from "./mixin";
 import { forEach } from "./util";
 export let Vue;
 
+function getState(rootState, path) {
+  return path.reduce((state, key) => {
+    return state[key];
+  }, rootState);
+}
+
 function installModule(store, rootState, path, module) {
   const namespace = store._modules.getNamespace(path);
   if (path.length > 0) {
@@ -14,7 +20,10 @@ function installModule(store, rootState, path, module) {
   module.forEachMutations((mutation, key) => {
     store._mutations[namespace + key] = store._mutations[namespace + key] || [];
     store._mutations[namespace + key].push((payload) => {
-      mutation.call(store, module.state, payload);
+      mutation.call(store, getState(store.state, path), payload);
+      store._subscribs.forEach((subscribe) =>
+        subscribe({ mutation, type: key }, store.state)
+      );
     });
   });
   module.forEachActions((action, key) => {
@@ -25,7 +34,7 @@ function installModule(store, rootState, path, module) {
   });
   module.forEachGetters((getter, key) => {
     store._wrappedGetters[namespace + key] = function () {
-      return getter(module.state);
+      return getter(getState(store.state, path));
     };
   });
   module.forEachChildren((childModule, key) => {
@@ -61,10 +70,12 @@ export class Store {
     this._mutations = {};
     this._actions = {};
     this._wrappedGetters = {};
+    this._subscribs = [];
     this.commit = this.commit.bind(this);
     this.dispatch = this.dispatch.bind(this);
     installModule(this, state, [], this._modules.root);
     resetStoreVm(this, state);
+    (options.plugins || []).forEach((plugin) => plugin(this));
   }
   commit(type, payload) {
     this._mutations[type].forEach((mutation) => {
@@ -80,12 +91,18 @@ export class Store {
     return this._vm._data.$$state;
   }
   resiterModule(path, rawModule) {
-    if (typeof path === 'string') {
-      path = [path]
+    if (typeof path === "string") {
+      path = [path];
     }
-    this._modules.register(path, rawModule)
-    installModule(this, this._modules.root.state, path, rawModule.newModule)
-    resetStoreVm(this, this._modules.root.state)
+    this._modules.register(path, rawModule);
+    installModule(this, this._modules.root.state, path, rawModule.newModule);
+    resetStoreVm(this, this._modules.root.state);
+  }
+  subscribe(fn) {
+    this._subscribs.push(fn);
+  }
+  replaceState(newState) {
+    this._vm._data.$$state = newState;
   }
 }
 
